@@ -33,13 +33,30 @@ class APIManager {
         
         //Criando a tarefa de requisição
         let task = URLSession.shared.dataTask(with: url) { data, response, error in
+            
             if let error = error {
                 print("Erro ao realizar requisição: \(error.localizedDescription)")
                 completion(.failure(error))
                 return
             }
+            
+            //Verficando as respostas HTTP
+            if let httResponse = response as? HTTPURLResponse {
+                switch httResponse.statusCode {
+                case 401:
+                    completion(.failure(HttpErros.unauthorized))
+                    return
+                case 404:
+                    completion(.failure(HttpErros.notFound))
+                    return
+                case 500...509:
+                    completion(.failure(HttpErros.serverError))
+                    return
+                default:
+                    completion(.failure(HttpErros.badRequest))
+                }
+            }
         }
         
     }
-    
 }
